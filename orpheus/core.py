@@ -24,6 +24,15 @@ timestamp_correction_term = 0
 oprinter = Oprinter()
 
 
+def get_default_download_path():
+    termux_home = '/data/data/com.termux/files/home'
+    if os.environ.get('TERMUX_VERSION') or os.path.exists(termux_home):
+        path = os.path.join(termux_home, 'storage', 'shared', 'OrpheusDL').replace('\\', '/')
+        os.makedirs(path, exist_ok=True)
+        return path
+    return './downloads/'
+
+
 def true_current_utc_timestamp():
     return int(datetime.utcnow().timestamp()) + timestamp_correction_term
 
@@ -34,7 +43,7 @@ class Orpheus:
 
         self.default_global_settings = {
             "general": {
-                "download_path": "./downloads/",
+                "download_path": get_default_download_path(),
                 "download_quality": "hifi",
                 "search_limit": 10
             },

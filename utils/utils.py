@@ -7,10 +7,13 @@ from functools import reduce
 
 
 def hash_string(input_str: str, hash_type: str = 'MD5'):
-    if hash_type == 'MD5':
-        return hashlib.md5(input_str.encode("utf-8")).hexdigest()
-    else:
+    if input_str is None:
+        input_str = ''
+    try:
+        hash_object = hashlib.new(hash_type.lower(), input_str.encode("utf-8"))
+    except (ValueError, TypeError):
         raise Exception('Invalid hash type selected')
+    return hash_object.hexdigest()
 
 def create_requests_session():
     session_ = requests.Session()
@@ -34,15 +37,22 @@ def fix_byte_limit(path: str, byte_limit=250):
     fixed_bytes = filename_bytes[:byte_limit]
     fixed_filename = fixed_bytes.decode('utf-8', 'ignore')
 
-    # join the directory and truncated filename together
-    return directory + '/' + fixed_filename
+    # join the directory and truncated filename together without creating a leading slash when there is no directory
+    safe_directory = directory.strip('/') if directory else ''
+    return (safe_directory + '/' + fixed_filename) if safe_directory else fixed_filename
 
 
 r_session = create_requests_session()
 
-def download_file(url, file_location, headers={}, enable_progress_bar=False, indent_level=0, artwork_settings=None):
+def download_file(url, file_location, headers=None, enable_progress_bar=False, indent_level=0, artwork_settings=None):
+    if headers is None:
+        headers = {}
     if os.path.isfile(file_location):
         return None
+
+    directory = os.path.dirname(file_location)
+    if directory and not os.path.exists(directory):
+        os.makedirs(directory, exist_ok=True)
 
     r = r_session.get(url, stream=True, headers=headers, verify=False)
 
@@ -105,55 +115,92 @@ def silentremove(filename):
             raise
 
 def read_temporary_setting(settings_location, module, root_setting=None, setting=None, global_mode=False):
-    temporary_settings = pickle.load(open(settings_location, 'rb'))
-    module_settings = temporary_settings['modules'][module] if module in temporary_settings['modules'] else None
-    
+    if not os.path.exists(settings_location):
+        return None if root_setting else {}
+
+    try:
+        with open(settings_location, 'rb') as handle:
+            temporary_settings = pickle.load(handle)
+    except (FileNotFoundError, EOFError, OSError, pickle.PickleError):
+        temporary_settings = {}
+
+    if not isinstance(temporary_settings, dict):
+        temporary_settings = {}
+    module_settings = temporary_settings.get('modules', {}).get(module)
+
     if module_settings:
         if global_mode:
             session = module_settings
         else:
-            session = module_settings['sessions'][module_settings['selected']]
+            selected = module_settings.get('selected')
+            session = module_settings.get('sessions', {}).get(selected)
     else:
         session = None
 
     if session and root_setting:
         if setting:
-            return session[root_setting][setting] if root_setting in session and setting in session[root_setting] else None
+            return session.get(root_setting, {}).get(setting) if isinstance(session.get(root_setting), dict) else None
         else:
-            return session[root_setting] if root_setting in session else None
+            return session.get(root_setting)
     elif root_setting and not session:
-        raise Exception('Module does not use temporary settings') 
+        raise Exception('Module does not use temporary settings')
     else:
         return session
 
 def set_temporary_setting(settings_location, module, root_setting, setting=None, value=None, global_mode=False):
-    temporary_settings = pickle.load(open(settings_location, 'rb'))
-    module_settings = temporary_settings['modules'][module] if module in temporary_settings['modules'] else None
-
-    if module_settings:
-        if global_mode:
-            session = module_settings
-        else:
-            session = module_settings['sessions'][module_settings['selected']]
+    if not os.path.exists(settings_location):
+        temporary_settings = {'modules': {}}
     else:
-        session = None
+        try:
+            with open(settings_location, 'rb') as handle:
+                temporary_settings = pickle.load(handle)
+        except (FileNotFoundError, EOFError, OSError, pickle.PickleError):
+            temporary_settings = {'modules': {}}
 
-    if not session:
-        raise Exception('Module does not use temporary settings')
+    if not isinstance(temporary_settings, dict):
+        temporary_settings = {'modules': {}}
+    temporary_settings.setdefault('modules', {})
+
+    module_settings = temporary_settings['modules'].get(module)
+    if not module_settings:
+        module_settings = {'selected': 'default', 'sessions': {'default': {}}}
+        temporary_settings['modules'][module] = module_settings
+
+    if global_mode:
+        session = module_settings
+    else:
+        module_settings.setdefault('sessions', {})
+        selected = module_settings.get('selected', 'default')
+        if selected not in module_settings['sessions']:
+            module_settings['sessions'][selected] = {}
+        session = module_settings['sessions'][selected]
+
     if setting:
+        session.setdefault(root_setting, {})
         session[root_setting][setting] = value
     else:
         session[root_setting] = value
-    pickle.dump(temporary_settings, open(settings_location, 'wb'))
 
-create_temp_filename = lambda : f'temp/{os.urandom(16).hex()}'
+    directory = os.path.dirname(settings_location)
+    if directory and not os.path.exists(directory):
+        os.makedirs(directory, exist_ok=True)
+
+    with open(settings_location, 'wb') as handle:
+        pickle.dump(temporary_settings, handle)
+
+def create_temp_filename():
+    os.makedirs('temp', exist_ok=True)
+    return f'temp/{os.urandom(16).hex()}'
 
 def save_to_temp(input: bytes):
     location = create_temp_filename()
-    open(location, 'wb').write(input)
+    with open(location, 'wb') as temp_file:
+        temp_file.write(input)
     return location
 
-def download_to_temp(url, headers={}, extension='', enable_progress_bar=False, indent_level=0):
+def download_to_temp(url, headers=None, extension='', enable_progress_bar=False, indent_level=0):
+    if headers is None:
+        headers = {}
     location = create_temp_filename() + (('.' + extension) if extension else '')
     download_file(url, location, headers=headers, enable_progress_bar=enable_progress_bar, indent_level=indent_level)
     return location
