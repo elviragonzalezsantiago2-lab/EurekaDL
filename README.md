@@ -47,7 +47,7 @@ python -m pip install -r requirements.txt
 ### Run
 
 ```bash
-python orpheus.py --help
+python eureka.py --help
 ```
 
 ### Default download folder
@@ -69,19 +69,19 @@ On Termux:
 From the project root:
 
 ```bash
-python orpheus.py "https://tidal.com/browse/album/92265334"
+python eureka.py "https://tidal.com/browse/album/92265334"
 ```
 
 Search:
 
 ```bash
-python orpheus.py search tidal track "darkside"
+python eureka.py search tidal track "darkside"
 ```
 
 Download by ID:
 
 ```bash
-python orpheus.py download tidal track 92265335
+python eureka.py download tidal track 92265335
 ```
 
 ## Configuration
