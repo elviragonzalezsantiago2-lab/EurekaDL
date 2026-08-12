@@ -30,7 +30,35 @@ def get_default_download_path():
         path = os.path.join(termux_home, 'storage', 'shared', 'OrpheusDL').replace('\\', '/')
         os.makedirs(path, exist_ok=True)
         return path
+
+    user_home = os.path.expanduser('~')
+    candidate_paths = [
+        os.path.join(user_home, 'Music', 'OrpheusDL') if user_home else None,
+        os.path.join(user_home, 'Downloads', 'OrpheusDL') if user_home else None,
+        os.path.join(os.sep, 'storage', 'emulated', '0', 'Download', 'OrpheusDL'),
+        os.path.join(os.sep, 'sdcard', 'Download', 'OrpheusDL')
+    ]
+
+    for candidate in candidate_paths:
+        if candidate and os.path.isdir(os.path.dirname(candidate)):
+            os.makedirs(candidate, exist_ok=True)
+            return candidate.replace('\\', '/')
+
     return './downloads/'
+
+
+def normalize_download_path(path):
+    if not path or not str(path).strip():
+        return get_default_download_path()
+
+    normalized = os.path.expanduser(str(path).strip())
+    normalized = normalized.replace('\\', os.sep)
+    if not os.path.isabs(normalized):
+        normalized = os.path.abspath(normalized)
+    if normalized.endswith(os.sep):
+        normalized = normalized.rstrip(os.sep)
+    os.makedirs(normalized, exist_ok=True)
+    return normalized
 
 
 def true_current_utc_timestamp():
@@ -184,6 +212,14 @@ class Orpheus:
 
         self.module_controls = {'module_list': self.module_list, 'module_settings': self.module_settings,
             'loaded_modules': self.loaded_modules, 'module_loader': self.load_module}
+
+    def set_download_path(self, path):
+        normalized_path = normalize_download_path(path)
+        self.settings.setdefault('global', {}).setdefault('general', {})['download_path'] = normalized_path
+        os.makedirs(self.data_folder_base, exist_ok=True)
+        with open(self.settings_location, 'w') as settings_file:
+            settings_file.write(json.dumps(self.settings, indent=4, sort_keys=False))
+        return normalized_path
 
     def load_module(self, module: str):
         module = module.lower()

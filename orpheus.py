@@ -27,7 +27,8 @@ def main():
            'quotes if you have issues downloading)'
     parser = argparse.ArgumentParser(description='Orpheus: modular music archival')
     parser.add_argument('-p', '--private', action='store_true', help=argparse.SUPPRESS)
-    parser.add_argument('-o', '--output', help='Select a download output path. Default is the provided download path in config/settings.py')
+    parser.add_argument('-o', '--output', help='Select a download output path for this run. Useful for unrooted Android/Termux users.')
+    parser.add_argument('--set-download-path', metavar='PATH', help='Set the default download directory in config/settings.json for future downloads.')
     parser.add_argument('-lr', '--lyrics', default='default', help='Set module to get lyrics from')
     parser.add_argument('-cv', '--covers', default='default', help='Override module to get covers from')
     parser.add_argument('-cr', '--credits', default='default', help='Override module to get credits from')
@@ -36,16 +37,38 @@ def main():
     args = parser.parse_args()
 
     orpheus = Orpheus(args.private)
+
+    if args.set_download_path:
+        chosen_path = orpheus.set_download_path(args.set_download_path)
+        print(f'Download directory saved to: {chosen_path}')
+        return
+
     if not args.arguments:
         parser.print_help()
         exit()
 
     orpheus_mode = args.arguments[0].lower()
     if orpheus_mode == 'settings': # These should call functions in a separate py file, that does not yet exist
+        if len(args.arguments) < 2:
+            print('Usage: orpheus.py settings [option] [value]')
+            exit()
         setting = args.arguments[1].lower()
         if setting == 'refresh':
             print('settings.json has been refreshed successfully.')
             return # Actually the only one that should genuinely return here after doing nothing
+        elif setting == 'download_path' or setting == 'download-directory' or setting == 'download_dir':
+            if len(args.arguments) > 2:
+                chosen_path = orpheus.set_download_path(args.arguments[2])
+                print(f'Download directory saved to: {chosen_path}')
+            else:
+                current_path = orpheus.settings['global']['general']['download_path']
+                prompt = input(f'Current download directory: {current_path}\nEnter a new directory or press Enter to keep it: ').strip()
+                if prompt:
+                    chosen_path = orpheus.set_download_path(prompt)
+                    print(f'Download directory saved to: {chosen_path}')
+                else:
+                    print(f'Keeping download directory: {current_path}')
+            return
         elif setting == 'core_update':  # Updates only Orpheus
             return  # TODO
         elif setting == 'full_update':  # Updates Orpheus and all modules
