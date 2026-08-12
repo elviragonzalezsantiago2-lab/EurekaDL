@@ -25,8 +25,26 @@ def main():
            '[option]" for module specific options (update, test, setup), searching by "[search/luckysearch] [module]' \
            '[track/artist/playlist/album] [query]", or just putting in urls. (you may need to wrap the URLs in double' \
            'quotes if you have issues downloading)'
-    parser = argparse.ArgumentParser(description='Orpheus: modular music archival')
+    parser = argparse.ArgumentParser(
+        description='Orpheus: modular music archival',
+        epilog='Available commands:\n'
+               '  search [module] [track|artist|playlist|album] [query]\n'
+               '  luckysearch [module] [track|artist|playlist|album] [query]\n'
+               '  download [module] [track|artist|playlist|album] [id ...]\n'
+               '  settings refresh\n'
+               '  settings download_path [PATH]\n'
+               '  --set-download-path PATH\n'
+               '  <service URL>\n\n'
+               'Examples:\n'
+               '  python orpheus.py search tidal track "Adele"\n'
+               '  python orpheus.py download tidal track 123456\n'
+               '  python orpheus.py --set-download-path "/sdcard/Download/OrpheusDL"\n'
+               '  python orpheus.py settings download_path "/sdcard/Download/OrpheusDL"',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        add_help=False,
+    )
     parser.add_argument('-p', '--private', action='store_true', help=argparse.SUPPRESS)
+    parser.add_argument('-h', '--h', '--help', action='help', help='Show this help message and exit.')
     parser.add_argument('-o', '--output', help='Select a download output path for this run. Useful for unrooted Android/Termux users.')
     parser.add_argument('--set-download-path', metavar='PATH', help='Set the default download directory in config/settings.json for future downloads.')
     parser.add_argument('-lr', '--lyrics', default='default', help='Set module to get lyrics from')
