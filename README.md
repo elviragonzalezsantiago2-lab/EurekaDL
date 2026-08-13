@@ -55,6 +55,23 @@ python eureka.py -o "/sdcard/Download/EurekaDL" download tidal track 92265335
 python orpheus.py ...   # original entrypoint still available
 ```
 
+Using the GUI
+
+A simple cross-platform Tkinter GUI is included at `gui/eureka_gui.py`. Launch it with:
+
+```bash
+python gui/eureka_gui.py
+```
+
+GUI quick tips:
+- Ensure `yt-dlp` and `ffmpeg` are installed and on PATH (or use `scripts/get_ffmpeg_windows.ps1`).
+- If YouTube shows a verification/captcha, export browser cookies (see browser/yt-dlp docs) and set the cookie file via env var before launching:
+  - PowerShell: $env:YTDLP_COOKIESFILE = 'C:\path\to\cookies.txt'
+  - Bash: export YTDLP_COOKIESFILE='/home/user/cookies.txt'
+- To download: paste a track or playlist URL, optionally choose an output directory, then press Download. Status shows progress and any errors.
+
+If the GUI closes immediately, run `python -m pytest tests/test_imports.py` to ensure imports succeed and report the error here.
+
 Set a persistent default download directory for future runs:
 
 ```bash
