@@ -46,19 +46,31 @@ python -m pip install -r requirements.txt
 
 ### Run
 
+Run commands using the new entrypoint `eureka.py` (alias for the original `orpheus.py`):
+
 ```bash
 python eureka.py --help
+python eureka.py search tidal track "Adele"
+python eureka.py -o "/sdcard/Download/OrpheusDL" download tidal track 92265335
+python orpheus.py ...   # original entrypoint still available
+```
+
+Set a persistent default download directory for future runs:
+
+```bash
+python eureka.py --set-download-path "/sdcard/Download/OrpheusDL"
+python eureka.py settings download_path "/sdcard/Download/OrpheusDL"
 ```
 
 ### Default download folder
 
-On desktop:
+On desktop (fallback):
 
 ```text
 ./downloads/
 ```
 
-On Termux:
+Android/Termux (auto-detected):
 
 ```text
 /data/data/com.termux/files/home/storage/shared/OrpheusDL
