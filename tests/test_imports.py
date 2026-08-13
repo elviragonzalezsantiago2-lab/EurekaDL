@@ -1,1 +1,11 @@
-﻿def test_import_core():\n    import importlib\n    importlib.import_module('orpheus')\n    importlib.import_module('eureka')\n    importlib.import_module('modules.youtube.interface')\n    importlib.import_module('modules.spotify.interface')\n    importlib.import_module('modules.deezer.interface')\n    importlib.import_module('modules.soundcloud.interface')\n    importlib.import_module('modules.bandcamp.interface')\n    assert True\n
+def test_import_core():
+    import importlib
+    importlib.import_module('orpheus')
+    importlib.import_module('eureka')
+    importlib.import_module('modules.youtube.interface')
+    importlib.import_module('modules.spotify.interface')
+    importlib.import_module('modules.deezer.interface')
+    importlib.import_module('modules.soundcloud.interface')
+    importlib.import_module('modules.bandcamp.interface')
+    assert True
+
