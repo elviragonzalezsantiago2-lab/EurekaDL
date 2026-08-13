@@ -336,7 +336,8 @@ class Orpheus:
                         module_settings[i][j] = settings_to_parse[j]
                         new_setting_detected = True
             else:
-                module_settings.pop(i)
+                # Keep an empty settings dict to avoid KeyError later when session hashes are computed
+                module_settings[i] = {}
 
         new_settings['global'] = global_settings
         new_settings['extensions'] = extension_settings
