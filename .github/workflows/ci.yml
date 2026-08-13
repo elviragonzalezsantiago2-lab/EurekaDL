@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  python-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Install dependencies (if available)
+        run: |
+          if [ -f requirements.txt ]; then python -m pip install --upgrade pip && python -m pip install -r requirements.txt; fi
+      - name: Byte-compile Python files
+        run: python -m compileall -q .
+      - name: Run module stubs creation script
+        run: python scripts/fetch_recommended_modules.py || true
