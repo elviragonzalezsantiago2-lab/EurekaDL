@@ -84,7 +84,8 @@ class ModuleInterface:
             pass
         # fallback to yt-dlp via YouTube search
         from modules.youtube.interface import ModuleInterface as YT
-        items = YT(None).search(DownloadEnum.track, title := (kwargs.get('query') or sid), limit=1)
+        from utils.models import DownloadTypeEnum
+        items = YT(None).search(DownloadTypeEnum.track, title := (kwargs.get('query') or sid), limit=1)
         if items:
             si = items[0]
             return TrackInfo(name=si.name, album='', album_id='', artists=si.artists, tags=Tags(), codec=CodecEnum.NONE, cover_url=si.extra_kwargs.get('webpage_url',''), release_year=0, duration=si.duration, download_extra_kwargs=si.extra_kwargs)
