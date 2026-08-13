@@ -8,4 +8,3 @@ def test_import_core():
     importlib.import_module('modules.soundcloud.interface')
     importlib.import_module('modules.bandcamp.interface')
     assert True
-
