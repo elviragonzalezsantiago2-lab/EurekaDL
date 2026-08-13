@@ -9,3 +9,5 @@ temp/
 .python-version
 modules/
 extensions/
+# Local tools and downloaded ffmpeg builds
+tools/
