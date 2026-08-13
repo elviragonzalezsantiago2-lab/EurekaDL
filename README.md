@@ -173,16 +173,32 @@ bash scripts/install_eureka.sh          # installs to a sensible default for you
 bash scripts/install_eureka.sh --prefix /usr/local/bin
 ```
 
-Supports Termux, Linux, macOS, and iOS shells (a-Shell/iSH). After installation, run `eureka --help`.
+Supported platforms and tips:
+- Termux (Android): run `termux-setup-storage` first, then `bash scripts/install_eureka.sh`. The installer defaults to Termux's $PREFIX/bin so the command will be available system-wide inside Termux.
+- Linux: default installs to $HOME/.local/bin; add that to PATH (`echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.profile`).
+- macOS: if you use Homebrew, installer will prefer `$(brew --prefix)/bin`; otherwise use `--prefix /usr/local/bin` and install with `sudo` if needed.
+- iOS (a-Shell / iSH): installer will attempt to use $HOME/bin or $HOME/.local/bin. Confirm Python 3 is available (a-Shell includes Python) and that the target dir is in PATH.
+
+After installation run `eureka --help` to verify.
+
+
+## iOS (a-Shell / iSH) specific notes
+- a-Shell provides a Python runtime; copy the repository into a location the shell can access (for a-Shell use the Files app integration or iCloud). Run `python3 -m pip install --user -r requirements.txt` if pip is available.
+- iSH provides an Alpine Linux environment; use apk to install required system packages and ensure Python 3 and ffmpeg are available.
+- For both, some modules (Spotify API, etc.) may require additional dependencies or API keys that are not available in mobile shells.
 
 
 ## Credits and License
 
-EurekaDL is a personal, public fork built from the OrpheusDL project. Full credit to the original OrpheusDL project and its contributors for the modular architecture and many of the module ideas.
+EurekaDL is a personal, public fork built from the OrpheusDL project. Full credit to the original OrpheusDL project and its contributors for the modular architecture and the original modules.
 
-- Original upstream: https://github.com/OrfiTeam/OrpheusDL
-- TIDAL module contributors and authors
+Notable upstream references and contributors:
+- OrpheusDL (original): https://github.com/OrfiTeam/OrpheusDL
+- TIDAL module: contributors and maintainers of modules/tidal (see modules/tidal/README.md)
+- yt-dlp project (used for YouTube extraction): https://github.com/yt-dlp/yt-dlp
+- spotipy (recommended for Spotify metadata): https://github.com/plamere/spotipy
 
-This fork aims to be innovative and user-friendly while preserving attribution to the original project. See LICENSE files for licensing details.
+License:
+- This repository preserves upstream licensing terms. Review LICENSE files from original projects before redistribution. If you plan to publish binaries or packaged installers, verify compatibility with each dependency's license.
 
 
