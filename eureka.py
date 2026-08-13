@@ -85,7 +85,8 @@ def main():
         media_to_download = {module: [media]}
 
         try:
-            orpheus_core_download(orp, media_to_download, third_party_modules=[], separate_download_module='default', output_path=outdir)
+            # third_party_modules should be a mapping (e.g., {ModuleModes.covers: 'youtube'}) — empty dict means no third-party overrides
+            orpheus_core_download(orp, media_to_download, third_party_modules={}, separate_download_module='default', output_path=outdir)
         except Exception as e:
             print(f'Error during download: {e}')
             sys.exit(1)
