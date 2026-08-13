@@ -25,10 +25,17 @@ class ModuleInterface:
             opts = {'quiet': True, 'skip_download': True, 'no_warnings': True}
             if ytdlp_args:
                 opts.update(ytdlp_args)
+            # Respect YTDLP_COOKIESFILE env var to allow users to pass cookies for restricted videos
+            cookiefile = os.environ.get('YTDLP_COOKIESFILE')
+            if cookiefile:
+                opts['cookiefile'] = cookiefile
             with ytdl.YoutubeDL(opts) as y:
                 return y.extract_info(url_or_query, download=False)
         except Exception:
             cmd = ['yt-dlp', '-j', url_or_query]
+            cookiefile = os.environ.get('YTDLP_COOKIESFILE')
+            if cookiefile:
+                cmd = ['yt-dlp', '--cookies', cookiefile, '-j', url_or_query]
             try:
                 p = subprocess.run(cmd, capture_output=True, check=True, text=True)
                 return json.loads(p.stdout)
