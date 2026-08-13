@@ -27,16 +27,16 @@ oprinter = Oprinter()
 def get_default_download_path():
     termux_home = '/data/data/com.termux/files/home'
     if os.environ.get('TERMUX_VERSION') or os.path.exists(termux_home):
-        path = os.path.join(termux_home, 'storage', 'shared', 'OrpheusDL').replace('\\', '/')
+        path = os.path.join(termux_home, 'storage', 'shared', 'EurekaDL').replace('\\', '/')
         os.makedirs(path, exist_ok=True)
         return path
 
     user_home = os.path.expanduser('~')
     candidate_paths = [
-        os.path.join(user_home, 'Music', 'OrpheusDL') if user_home else None,
-        os.path.join(user_home, 'Downloads', 'OrpheusDL') if user_home else None,
-        os.path.join(os.sep, 'storage', 'emulated', '0', 'Download', 'OrpheusDL'),
-        os.path.join(os.sep, 'sdcard', 'Download', 'OrpheusDL')
+        os.path.join(user_home, 'Music', 'EurekaDL') if user_home else None,
+        os.path.join(user_home, 'Downloads', 'EurekaDL') if user_home else None,
+        os.path.join(os.sep, 'storage', 'emulated', '0', 'Download', 'EurekaDL'),
+        os.path.join(os.sep, 'sdcard', 'Download', 'EurekaDL')
     ]
 
     for candidate in candidate_paths:

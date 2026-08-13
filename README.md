@@ -51,15 +51,15 @@ Run commands using the new entrypoint `eureka.py` (alias for the original `orphe
 ```bash
 python eureka.py --help
 python eureka.py search tidal track "Adele"
-python eureka.py -o "/sdcard/Download/OrpheusDL" download tidal track 92265335
+python eureka.py -o "/sdcard/Download/EurekaDL" download tidal track 92265335
 python orpheus.py ...   # original entrypoint still available
 ```
 
 Set a persistent default download directory for future runs:
 
 ```bash
-python eureka.py --set-download-path "/sdcard/Download/OrpheusDL"
-python eureka.py settings download_path "/sdcard/Download/OrpheusDL"
+python eureka.py --set-download-path "/sdcard/Download/EurekaDL"
+python eureka.py settings download_path "/sdcard/Download/EurekaDL"
 ```
 
 ### Default download folder
@@ -73,7 +73,7 @@ On desktop (fallback):
 Android/Termux (auto-detected):
 
 ```text
-/data/data/com.termux/files/home/storage/shared/OrpheusDL
+/data/data/com.termux/files/home/storage/shared/EurekaDL
 ```
 
 ## TIDAL usage
@@ -110,7 +110,7 @@ Relevant section:
 {
  "global": {
    "general": {
-     "download_path": "C:/Users/miria/Music/OrpheusDL",
+     "download_path": "C:/Users/miria/Music/EurekaDL",
      "download_quality": "hifi",
      "search_limit": 10
    }
@@ -137,3 +137,52 @@ See the repository license files for full licensing terms.
 - Original OrpheusDL project
 - TIDAL module contributors
 - Termux/mobile user community
+
+
+## Additional streaming modules
+
+This fork provides a recommended workflow to add support for more streaming platforms (YouTube, Spotify, Deezer, SoundCloud, Bandcamp).
+
+Quick steps to add modules:
+
+- Create safe, importable module stubs automatically:
+
+```bash
+python scripts/fetch_recommended_modules.py
+```
+
+- Stubs are created under `modules/<service>/interface.py`. They are importable and prevent startup errors, but are placeholders that raise NotImplementedError when used. They include guidance on dependencies.
+
+- To implement a working module:
+  - For YouTube, install yt-dlp and implement an interface that returns Download URLs using yt-dlp extractors.
+  - For Spotify, use spotipy for metadata (requires API keys) and combine with another provider for actual media extraction.
+  - Deezer, SoundCloud, Bandcamp: yt-dlp often supports many endpoints; otherwise adapt an existing open-source OrpheusDL module.
+
+Helper scripts:
+
+- `scripts/create_stub_module.py <service>`: creates a minimal module scaffold.
+- `scripts/fetch_recommended_modules.py`: creates stubs for recommended services and prints dependency suggestions.
+
+
+## Installing the global 'eureka' command
+
+Use the included installer to create a small wrapper in a user bin directory:
+
+```bash
+bash scripts/install_eureka.sh          # installs to a sensible default for your platform
+bash scripts/install_eureka.sh --prefix /usr/local/bin
+```
+
+Supports Termux, Linux, macOS, and iOS shells (a-Shell/iSH). After installation, run `eureka --help`.
+
+
+## Credits and License
+
+EurekaDL is a personal, public fork built from the OrpheusDL project. Full credit to the original OrpheusDL project and its contributors for the modular architecture and many of the module ideas.
+
+- Original upstream: https://github.com/OrfiTeam/OrpheusDL
+- TIDAL module contributors and authors
+
+This fork aims to be innovative and user-friendly while preserving attribution to the original project. See LICENSE files for licensing details.
+
+

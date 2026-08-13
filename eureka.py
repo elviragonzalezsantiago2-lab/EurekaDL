@@ -40,8 +40,8 @@ def main():
                'Examples:\n'
                '  python orpheus.py search tidal track "Adele"\n'
                '  python orpheus.py download tidal track 123456\n'
-               '  python orpheus.py --set-download-path "/sdcard/Download/OrpheusDL"\n'
-               '  python orpheus.py settings download_path "/sdcard/Download/OrpheusDL"',
+               '  python eureka.py --set-download-path "/sdcard/Download/EurekaDL"\n'
+               '  python eureka.py settings download_path "/sdcard/Download/EurekaDL"',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         add_help=False,
     )
