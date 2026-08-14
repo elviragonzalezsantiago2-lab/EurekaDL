@@ -7,6 +7,8 @@ from __future__ import annotations
 
 import sys
 import os
+import shutil
+from pathlib import Path
 from urllib.parse import urlparse
 
 try:
@@ -18,7 +20,36 @@ except Exception as e:
 
 
 def print_help():
-    print("Usage:\n  python eureka.py download <url> [--output <path>]\n  python eureka.py --help")
+    print(
+        "Usage:\n"
+        "  python eureka.py download <url> [--output <path>]\n"
+        "  python eureka.py doctor\n"
+        "  python eureka.py --help"
+    )
+
+
+def run_doctor(project_root=None):
+    """Print a quick, non-destructive installation diagnostic."""
+    root = Path(project_root or Path(__file__).resolve().parent)
+    config_path = root / "config" / "settings.json"
+    modules_path = root / "modules"
+    modules = sorted(
+        path.name for path in modules_path.iterdir()
+        if path.is_dir() and (path / "interface.py").is_file()
+    ) if modules_path.is_dir() else []
+
+    print("EurekaDL diagnostics")
+    print(f"Python: {sys.version.split()[0]}")
+    print(f"FFmpeg: {'found' if shutil.which('ffmpeg') else 'missing'}")
+    print(f"Configuration: {'found' if config_path.is_file() else 'not created yet'}")
+    print(f"Modules: {len(modules)}" + (f" ({', '.join(modules)})" if modules else ""))
+
+    if not shutil.which("ffmpeg"):
+        print("Tip: install FFmpeg before downloading or converting audio.")
+    if not config_path.is_file():
+        print("Tip: run a download command once to generate the default configuration.")
+    if not modules:
+        print("Tip: install at least one module before downloading.")
 
 
 def detect_module_for_url(orpheus_session: Orpheus, url: str):
@@ -48,6 +79,10 @@ def main():
         return
 
     cmd = sys.argv[1]
+    if cmd == 'doctor':
+        run_doctor()
+        return
+
     if cmd == 'download':
         if len(sys.argv) < 3:
             print('Error: missing URL')
