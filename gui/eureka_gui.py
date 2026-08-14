@@ -11,6 +11,11 @@ from urllib.parse import urlparse
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 EUREKA_ENTRY = os.path.join(ROOT_DIR, "eureka.py")
+LOGIN_PLATFORMS = (
+    ("YouTube", "youtube"), ("Spotify", "spotify"), ("Apple Music", "applemusic"),
+    ("Deezer", "deezer"), ("SoundCloud", "soundcloud"), ("Bandcamp", "bandcamp"),
+    ("Qobuz", "qobuz"), ("Crunchyroll", "crunchyroll"), ("TIDAL TV", "tidal"),
+)
 
 
 def is_supported_url(value):
@@ -27,23 +32,39 @@ def build_download_command(url, outdir=None):
     return command
 
 
-def run_eureka_download(url, outdir, events):
+def build_login_command(platform):
+    """Build a platform setup/login command without exposing credentials to the GUI."""
+    command = [sys.executable, EUREKA_ENTRY, "login", platform]
+    if platform == "tidal":
+        command.extend(["--mode", "tv"])
+    return command
+
+
+def run_eureka_command(command, action, events):
     """Start a worker which sends events back to the Tk main thread."""
     def target():
-        events.put(("started", None))
+        events.put(("started", action))
         try:
             process = subprocess.Popen(
-                build_download_command(url, outdir), stdout=subprocess.PIPE,
+                command, stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace",
             )
             for line in process.stdout:
                 events.put(("output", line.rstrip()))
             process.wait()
-            events.put(("finished", process.returncode))
+            events.put(("finished", (action, process.returncode)))
         except Exception as error:
             events.put(("error", str(error)))
 
     threading.Thread(target=target, daemon=True).start()
+
+
+def run_eureka_download(url, outdir, events):
+    run_eureka_command(build_download_command(url, outdir), "Download", events)
+
+
+def run_platform_login(platform, events):
+    run_eureka_command(build_login_command(platform), f"{platform.title()} login", events)
 
 
 def choose_output_dir(entry_out):
@@ -69,13 +90,13 @@ def open_output_directory(path):
 def build_ui():
     root = tk.Tk()
     root.title("EurekaDL")
-    root.geometry("700x440")
-    root.minsize(560, 360)
+    root.geometry("740x560")
+    root.minsize(600, 440)
 
     frame = ttk.Frame(root, padding=14)
     frame.pack(fill=tk.BOTH, expand=True)
     frame.columnconfigure(0, weight=1)
-    frame.rowconfigure(6, weight=1)
+    frame.rowconfigure(8, weight=1)
 
     ttk.Label(frame, text="EurekaDL", font=("TkDefaultFont", 16, "bold")).grid(row=0, column=0, sticky="w")
     ttk.Label(frame, text="Paste a track or playlist URL to start a download.").grid(row=1, column=0, sticky="w", pady=(0, 12))
@@ -93,14 +114,18 @@ def build_ui():
     entry_out.grid(row=0, column=0, sticky="ew")
     ttk.Button(output_row, text="Browse…", command=lambda: choose_output_dir(entry_out)).grid(row=0, column=1, padx=(8, 0))
 
+    ttk.Label(frame, text="Platform sign-in and setup").grid(row=6, column=0, sticky="w")
+    platform_row = ttk.Frame(frame)
+    platform_row.grid(row=7, column=0, sticky="ew", pady=(4, 10))
+
     log = scrolledtext.ScrolledText(frame, height=12, state=tk.DISABLED, wrap=tk.WORD, font=("Consolas", 9))
-    log.grid(row=6, column=0, sticky="nsew", pady=(0, 10))
+    log.grid(row=8, column=0, sticky="nsew", pady=(0, 10))
 
     status_var = tk.StringVar(value="Ready")
-    ttk.Label(frame, textvariable=status_var).grid(row=7, column=0, sticky="w")
+    ttk.Label(frame, textvariable=status_var).grid(row=9, column=0, sticky="w")
 
     actions = ttk.Frame(frame)
-    actions.grid(row=8, column=0, sticky="ew", pady=(10, 0))
+    actions.grid(row=10, column=0, sticky="ew", pady=(10, 0))
     actions.columnconfigure(3, weight=1)
     events = queue.Queue()
 
@@ -121,23 +146,30 @@ def build_ui():
             while True:
                 event, value = events.get_nowait()
                 if event == "started":
-                    status_var.set("Downloading…")
+                    status_var.set(f"{value} in progress…")
                     download_button.config(state=tk.DISABLED)
-                    append_log("Starting EurekaDL…")
+                    for button in login_buttons:
+                        button.config(state=tk.DISABLED)
+                    append_log(f"Starting {value}…")
                 elif event == "output":
                     append_log(value)
                     if value:
                         status_var.set(value)
                 elif event == "finished":
+                    action, returncode = value
                     download_button.config(state=tk.NORMAL)
-                    if value == 0:
-                        status_var.set("Download finished")
-                        append_log("Download finished successfully.")
+                    for button in login_buttons:
+                        button.config(state=tk.NORMAL)
+                    if returncode == 0:
+                        status_var.set(f"{action} finished")
+                        append_log(f"{action} finished successfully.")
                     else:
-                        status_var.set(f"Download failed (code {value})")
-                        append_log(f"Download failed with exit code {value}.")
+                        status_var.set(f"{action} failed (code {returncode})")
+                        append_log(f"{action} failed with exit code {returncode}.")
                 elif event == "error":
                     download_button.config(state=tk.NORMAL)
+                    for button in login_buttons:
+                        button.config(state=tk.NORMAL)
                     status_var.set("Could not start EurekaDL")
                     append_log(f"Error: {value}")
                     messagebox.showerror("EurekaDL", f"Could not start EurekaDL:\n{value}")
@@ -153,6 +185,12 @@ def build_ui():
             entry_url.focus_set()
             return
         run_eureka_download(url, outdir, events)
+
+    login_buttons = []
+    for index, (label, platform) in enumerate(LOGIN_PLATFORMS):
+        button = ttk.Button(platform_row, text=label, command=lambda name=platform: run_platform_login(name, events))
+        button.grid(row=index // 5, column=index % 5, padx=(0, 6), pady=(0, 5), sticky="w")
+        login_buttons.append(button)
 
     download_button = ttk.Button(actions, text="Download", command=on_download)
     download_button.grid(row=0, column=0, sticky="w")

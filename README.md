@@ -65,6 +65,8 @@ python gui/eureka_gui.py
 
 GUI quick tips:
 - Ensure `yt-dlp` and `ffmpeg` are installed and on PATH (or use `scripts/get_ffmpeg_windows.ps1`).
+- The platform buttons explain the authentication mechanism used by each module in the activity log. YouTube uses `YTDLP_COOKIESFILE`; Spotify uses `SPOTIPY_CLIENT_ID` and `SPOTIPY_CLIENT_SECRET`.
+- `TIDAL TV` starts the device-login flow when the optional TIDAL module is installed. If it is missing, the GUI reports that directly instead of asking for account credentials.
 - If YouTube shows a verification/captcha, export browser cookies (see browser/yt-dlp docs) and set the cookie file via env var before launching:
   - PowerShell: $env:YTDLP_COOKIESFILE = 'C:\path\to\cookies.txt'
   - Bash: export YTDLP_COOKIESFILE='/home/user/cookies.txt'
