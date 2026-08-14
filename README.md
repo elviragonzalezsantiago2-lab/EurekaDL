@@ -50,10 +50,12 @@ Run commands using the new entrypoint `eureka.py` (alias for the original `orphe
 
 ```bash
 python eureka.py --help
-python eureka.py search tidal track "Adele"
-python eureka.py -o "/sdcard/Download/EurekaDL" download tidal track 92265335
-python orpheus.py ...   # original entrypoint still available
+python eureka.py doctor
+python eureka.py download "https://tidal.com/browse/album/92265334"
+python eureka.py download "https://tidal.com/browse/album/92265334" --output "/sdcard/Download/EurekaDL"
 ```
+
+`doctor` is a read-only diagnostic that reports whether Python, FFmpeg, the local configuration, and service modules are available. It is a useful first step when setting up a fresh Termux or desktop installation.
 
 Using the GUI
 
@@ -98,19 +100,7 @@ Android/Termux (auto-detected):
 From the project root:
 
 ```bash
-python eureka.py "https://tidal.com/browse/album/92265334"
-```
-
-Search:
-
-```bash
-python eureka.py search tidal track "darkside"
-```
-
-Download by ID:
-
-```bash
-python eureka.py download tidal track 92265335
+python eureka.py download "https://tidal.com/browse/album/92265334"
 ```
 
 ## Configuration
