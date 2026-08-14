@@ -407,7 +407,15 @@ class Orpheus:
 
 
 def orpheus_core_download(orpheus_session: Orpheus, media_to_download, third_party_modules, separate_download_module, output_path):
-    downloader = Downloader(orpheus_session.settings['global'], orpheus_session.module_controls, oprinter, output_path)
+    # The CLI passes ``None`` when --output is omitted. Downloader expects a
+    # concrete path, so fall back to the configured default before constructing it.
+    download_path = output_path or orpheus_session.settings['global']['general'].get('download_path')
+    downloader = Downloader(
+        orpheus_session.settings['global'],
+        orpheus_session.module_controls,
+        oprinter,
+        normalize_download_path(download_path),
+    )
     os.makedirs('temp', exist_ok=True)
 
     for mainmodule, items in media_to_download.items():
