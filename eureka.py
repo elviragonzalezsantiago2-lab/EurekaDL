@@ -18,7 +18,42 @@ except Exception as e:
 
 
 def print_help():
-    print("Usage:\n  python eureka.py download <url> [--output <path>]\n  python eureka.py --help")
+    print("Usage:\n  python eureka.py download <url> [--output <path>]\n  python eureka.py login <platform> [--mode tv|browser] [--username ...] [--password ...]\n  python eureka.py --help")
+
+
+def run_tidal_tv_login():
+    try:
+        from modules.tidal.interface import module_information
+        from modules.tidal.tidal_api import TidalTvSession
+        settings = getattr(module_information, 'global_settings', {})
+        session = TidalTvSession(settings.get('tv_atmos_token'), settings.get('tv_atmos_secret'))
+        session.auth()
+        print('TIDAL TV login successful. The session is valid for this process.')
+        return 0
+    except Exception as exc:
+        print(f'Error: TIDAL TV login failed: {exc}')
+        return 1
+
+
+def run_platform_login(platform: str, username: str = None, password: str = None, mode: str = 'tv'):
+    platform = (platform or '').lower().strip()
+    if platform == 'tidal':
+        if mode.lower() not in {'tv', 'browser'}:
+            mode = 'tv'
+        if mode == 'browser':
+            print('TIDAL browser login is not available in this lightweight GUI flow; using TV login instead.')
+        return run_tidal_tv_login()
+
+    if platform in {'youtube', 'spotify', 'deezer', 'soundcloud', 'bandcamp'}:
+        print(f'{platform.title()} login in this project is handled through browser cookies or API credentials, not a simple username/password form.')
+        if platform == 'spotify':
+            print('Set SPOTIPY_CLIENT_ID and SPOTIPY_CLIENT_SECRET before using Spotify features.')
+        elif platform == 'youtube':
+            print('Set YTDLP_COOKIESFILE to a valid browser cookies.txt file when YouTube blocks downloads.')
+        return 0
+
+    print(f'Unknown platform: {platform}')
+    return 1
 
 
 def detect_module_for_url(orpheus_session: Orpheus, url: str):
@@ -48,6 +83,27 @@ def main():
         return
 
     cmd = sys.argv[1]
+    if cmd == 'login':
+        if len(sys.argv) < 3:
+            print('Error: missing platform name')
+            print_help()
+            sys.exit(1)
+
+        platform = sys.argv[2]
+        username = None
+        password = None
+        mode = 'tv'
+
+        for i, arg in enumerate(sys.argv[3:]):
+            if arg in ('--username', '-u') and i + 3 < len(sys.argv):
+                username = sys.argv[3 + i + 1]
+            elif arg in ('--password', '-p') and i + 3 < len(sys.argv):
+                password = sys.argv[3 + i + 1]
+            elif arg in ('--mode', '-m') and i + 3 < len(sys.argv):
+                mode = sys.argv[3 + i + 1]
+
+        sys.exit(run_platform_login(platform, username=username, password=password, mode=mode))
+
     if cmd == 'download':
         if len(sys.argv) < 3:
             print('Error: missing URL')
@@ -72,6 +128,12 @@ def main():
         if not module:
             print('Error: could not detect a module for the provided URL')
             sys.exit(1)
+
+        if module.lower() == 'tidal':
+            print('TIDAL downloads require a TV session login.')
+            print('Use: python eureka.py login tidal --mode tv')
+            print('Then retry the download command.')
+            sys.exit(2)
 
         try:
             mod = orp.load_module(module)

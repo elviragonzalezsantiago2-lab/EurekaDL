@@ -68,6 +68,9 @@
     },
     "extensions": {},
     "modules": {
+        "qobuz": {},
+        "youtube": {},
+        "applemusic": {},
         "tidal": {
             "tv_atmos_token": "cgiF7TQuB97BUIu3",
             "tv_atmos_secret": "1nqpgx8uvBdZigrx4hUPDV2hOwgYAAAG5DYXOr6uNf8=",
@@ -76,6 +79,12 @@
             "enable_mobile": true,
             "prefer_ac4": false,
             "fix_mqa": false
-        }
+        },
+        "crunchyroll": {},
+        "bandcamp": {},
+        "example": {},
+        "deezer": {},
+        "soundcloud": {},
+        "spotify": {}
     }
 }

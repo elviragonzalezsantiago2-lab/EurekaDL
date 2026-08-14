@@ -65,6 +65,11 @@ python gui/eureka_gui.py
 
 GUI quick tips:
 - Ensure `yt-dlp` and `ffmpeg` are installed and on PATH (or use `scripts/get_ffmpeg_windows.ps1`).
+- TIDAL downloads do not work from the GUI because the module asks for interactive username/password login in a terminal. Use the CLI in a console instead:
+  ```bash
+  python eureka.py download "https://tidal.com/browse/track/92265335"
+  ```
+  Then enter the TIDAL credentials when prompted.
 - If YouTube shows a verification/captcha, export browser cookies (see browser/yt-dlp docs) and set the cookie file via env var before launching:
   - PowerShell: $env:YTDLP_COOKIESFILE = 'C:\path\to\cookies.txt'
   - Bash: export YTDLP_COOKIESFILE='/home/user/cookies.txt'
